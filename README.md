@@ -19,6 +19,8 @@ Classes, the A–H rotation and the bell times are in `schedule.js`:
 
 The header shows a counter for the next day off: calendar days, school days left, and a live countdown to midnight when it starts.
 
+Personal deadlines and study blocks are in `planner.js`. They show in the Day and Month views, and the header counts down to the next hard deadline.
+
 ## Open it
 
 Online with GitHub Pages: in the repo, go to **Settings → Pages**, set **Source** to "Deploy from a branch", pick the `claude/calendar-pdf-holiday-scanner-nk78gr` branch and the `/ (root)` folder, and click **Save**. After a minute or two the site is live at https://nerdcoder10.github.io/Rep1/.

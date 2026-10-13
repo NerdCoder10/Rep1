@@ -199,11 +199,53 @@ function daySchedule(d) {
   return items;
 }
 
+// Personal planner items for a date: daily study blocks and deadlines.
+function plannerItems(d) {
+  const items = [];
+  for (const it of PLANNER) {
+    if (it.type === "block" && d >= it.start && d <= it.end) {
+      items.push({ start: it.from, end: it.to, title: it.title, kind: "study" });
+    } else if (it.type === "deadline" && it.date === d) {
+      items.push({ start: it.time, end: it.time, title: it.title, kind: "deadline" });
+    }
+  }
+  return items;
+}
+
+// School schedule plus planner items, in time order.
+const dayItems = (d) => daySchedule(d).concat(plannerItems(d))
+  .sort((a, b) => minutes(a.start) - minutes(b.start));
+
+const deadlineMs = (it) => nyMidnight(it.date) + minutes(it.time) * 60000;
+
+function renderDeadline() {
+  const box = document.getElementById("nextDeadline");
+  const now = clock.now();
+  const next = PLANNER.filter((it) => it.type === "deadline" && deadlineMs(it) > now)
+    .sort((a, b) => deadlineMs(a) - deadlineMs(b))[0];
+  if (!next) { box.innerHTML = ""; return; }
+  const left = deadlineMs(next) - now;
+  const days = Math.floor(left / DAY_MS);
+  const h = Math.floor(left / 3600000) % 24;
+  const m = Math.floor(left / 60000) % 60;
+  const sec = Math.floor(left / 1000) % 60;
+  box.classList.toggle("urgent", left < 2 * DAY_MS);
+  box.innerHTML = `
+    <div class="count-label">Hard deadline</div>
+    <div class="count-title"></div>
+    <div class="count-main"><span class="count-num">${days}</span> day${days === 1 ? "" : "s"}
+      <span class="count-rest">${h}h ${pad(m)}m</span></div>
+    <div class="count-sub"></div>
+    <div class="count-live">${days}d ${pad(h)}h ${pad(m)}m ${pad(sec)}s</div>`;
+  box.querySelector(".count-title").textContent = next.title;
+  box.querySelector(".count-sub").textContent = `Due ${shortDate(next.date)}, ${clockLabel(next.time)}`;
+}
+
 function currentClass() {
   const p = nyParts(clock.now());
   const now = p.hour * 60 + p.minute;
   const today = todayNY();
-  const items = daySchedule(today);
+  const items = dayItems(today).filter((it) => it.kind !== "deadline");
   const cur = items.find((it) => now >= minutes(it.start) && now < minutes(it.end));
   if (cur) return `Now: ${cur.title} – until ${clockLabel(cur.end)}`;
   const next = items.find((it) => minutes(it.start) > now);
@@ -287,7 +329,17 @@ function renderDay() {
   const mine = (userEvents[d] || []).slice().sort((a, b) => a.time.localeCompare(b.time));
   layer.classList.toggle("split", mine.length > 0);
 
-  for (const item of daySchedule(d)) {
+  for (const item of dayItems(d)) {
+    if (item.kind === "deadline") {
+      const el = document.createElement("div");
+      el.className = "deadline-line";
+      el.style.top = `${minutes(item.start)}px`;
+      el.innerHTML = `<span></span>`;
+      el.firstChild.textContent = `⚑ Due ${clockLabel(item.start)} · ${item.title}`;
+      el.title = el.textContent;
+      layer.appendChild(el);
+      continue;
+    }
     const el = document.createElement("div");
     el.className = `slot ${item.kind}` + (item.block ? ` blk${item.block}` : "") +
       (minutes(item.end) - minutes(item.start) < 45 ? " short" : "");
@@ -384,6 +436,13 @@ function renderMonth() {
       chip.className = `chip ${ev.type}`;
       chip.textContent = ev.title;
       chip.title = ev.title;
+      cell.appendChild(chip);
+    }
+    for (const it of plannerItems(d)) {
+      const chip = document.createElement("span");
+      chip.className = `chip ${it.kind}`;
+      chip.textContent = it.kind === "deadline" ? `⚑ ${clockLabel(it.start)} ${it.title}` : `${clockLabel(it.start)} ${it.title}`;
+      chip.title = chip.textContent;
       cell.appendChild(chip);
     }
     for (const ev of userEvents[d] || []) {
@@ -519,6 +578,7 @@ function tick() {
   lastDay = today;
   updateNowLine(false);
   renderNextOff();
+  renderDeadline();
   document.getElementById("nowClass").textContent = currentClass();
 }
 
