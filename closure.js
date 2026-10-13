@@ -62,8 +62,8 @@ const ALERT_FLOORS = {
 
 const FREEZING_CODES = new Set([56, 57, 66, 67]);
 const CACHE_KEY = "calendar.weather";
-const REFRESH_MS = 2 * 60 * 60 * 1000;   // update the chances every 2 hours
-const RETRY_MS = 15 * 60 * 1000;         // after a failed update, try again sooner
+const REFRESH_MS = 15 * 60 * 1000;       // update the chances every 15 minutes
+const RETRY_MS = 5 * 60 * 1000;          // after a failed update, try again sooner
 
 const weather = { hourly: null, alerts: [], fetchedAt: 0, error: null };
 

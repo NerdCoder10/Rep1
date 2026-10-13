@@ -21,7 +21,7 @@ The header shows a counter for the next day off: calendar days, school days left
 
 Personal deadlines and study blocks are in `planner.js`. They show in the Day and Month views, and the header counts down to the next hard deadline.
 
-Every upcoming school day shows a ❄ chance that school is cancelled. It comes from the Open-Meteo hourly forecast (snow, ice, wind chill, wind gusts, rain) and active National Weather Service alerts for Greenwich, blended with seasonal averages. The chances update every 2 hours. Days beyond the 16-day forecast show the seasonal average only. The full formula is documented at the top of `closure.js`.
+Every upcoming school day shows a ❄ chance that school is cancelled. It comes from the Open-Meteo hourly forecast (snow, ice, wind chill, wind gusts, rain) and active National Weather Service alerts for Greenwich, blended with seasonal averages. The chances update every 15 minutes. Days beyond the 16-day forecast show the seasonal average only. The full formula is documented at the top of `closure.js`.
 
 ## Open it
 

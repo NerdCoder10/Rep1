@@ -670,7 +670,7 @@ render();
 tick();
 renderWeatherStatus();
 setInterval(tick, 1000);
-// Update the forecast every 2 hours (counted from the last successful update,
+// Update the forecast every 15 minutes (counted from the last successful update,
 // which is remembered across page loads).
 let lastWeatherAttempt = 0;
 function maybeRefreshWeather() {
