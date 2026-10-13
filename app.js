@@ -160,10 +160,6 @@ const clockLabel = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); retur
 function lunchWave(cls) {
   return cls.lunchWave || LUNCH_WAVE_BY_HUNDREDS[Math.floor(Number(cls.room) / 100)] || null;
 }
-function shiftTime(hhmm, delta) {
-  const t = minutes(hhmm) + delta;
-  return `${pad(Math.floor(t / 60))}:${pad(t % 60)}`;
-}
 
 // The day's timeline: [{ start, end, title, detail, block, kind }]
 function daySchedule(d) {
@@ -187,11 +183,8 @@ function daySchedule(d) {
     const wave = bell.lunch && cls ? lunchWave(cls) : null;
     if (wave) {
       // Split the lunch block into class time and lunch for this wave.
-      const shift = early ? EARLY_RELEASE_LUNCH_SHIFT_MIN : 0;
-      for (const part of LUNCH_WAVES[wave]) {
-        const start = shiftTime(part.start, shift);
-        const end = shiftTime(part.end, shift);
-        items.push(part.lunch
+      for (const { start, end, lunch } of (early ? EARLY_RELEASE_LUNCH_WAVES : LUNCH_WAVES)[wave]) {
+        items.push(lunch
           ? { start, end, title: `Lunch · Wave ${wave}`, kind: "lunch" }
           : { start, end, title, detail, block, kind, period });
       }

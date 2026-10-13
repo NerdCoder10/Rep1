@@ -87,6 +87,25 @@ const LUNCH_WAVES = {
 // add `lunchWave: 4` to a class to override the room rule.
 const LUNCH_WAVE_BY_HUNDREDS = { 1: 2, 2: 2, 3: 3, 4: 3, 5: 4, 6: 4, 7: 1, 8: 4, 9: 1 };
 
-// The early release lunch block (11:00–12:25) is the same length as the
-// regular one, so the wave times are shifted one hour earlier on those days.
-const EARLY_RELEASE_LUNCH_SHIFT_MIN = -60;
+// Lunch waves on early release days (lunch block 11:00–12:25); bells ring at
+// 11:15, 11:35 and 11:55.
+const EARLY_RELEASE_LUNCH_WAVES = {
+  1: [
+    { start: "10:55", end: "11:25", lunch: true },
+    { start: "11:30", end: "12:25" },
+  ],
+  2: [
+    { start: "11:00", end: "11:15" },
+    { start: "11:15", end: "11:45", lunch: true },
+    { start: "11:45", end: "12:25" },
+  ],
+  3: [
+    { start: "11:00", end: "11:35" },
+    { start: "11:35", end: "12:05", lunch: true },
+    { start: "12:05", end: "12:25" },
+  ],
+  4: [
+    { start: "11:00", end: "11:55" },
+    { start: "11:55", end: "12:25", lunch: true },
+  ],
+};

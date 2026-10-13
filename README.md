@@ -15,7 +15,7 @@ Classes, the A–H rotation and the bell times are in `schedule.js`:
 - Every open school weekday advances the rotation by one letter. No-school days are skipped. The rotation is anchored to Day G on Oct 13, 2026, which puts the first day of school, Aug 28, on Day A.
 - High school early release days (12:25 dismissal) use the early release bells, starting with Cardinal Kick-Off. Early releases marked K-8 or K-5 only keep the regular schedule.
 - On early release days, "Block 1–6" on the bell schedule means the 1st–6th period of that rotation day, not block numbers. The Day view labels each slot with its period (P1–P6) and block.
-- Period 5 (12:00–1:25) is the lunch block (period 6, 11:00–12:25, on early release days). The lunch wave comes from the room of the class you have then, using the 1st semester lunch schedule. On early release days the wave times are shifted one hour earlier.
+- Period 5 (12:00–1:25) is the lunch block (period 6, 11:00–12:25, on early release days). The lunch wave comes from the room of the class you have then, using the 1st semester lunch schedule. Early release days use their own lunch wave times.
 
 ## Run it
 
