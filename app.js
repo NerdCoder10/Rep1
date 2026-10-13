@@ -157,6 +157,14 @@ const rotationDay = (d) => rotationByDate.get(d) || null;
 const minutes = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; };
 const clockLabel = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return formatTime(h, m); };
 
+function lunchWave(cls) {
+  return cls.lunchWave || LUNCH_WAVE_BY_HUNDREDS[Math.floor(Number(cls.room) / 100)] || null;
+}
+function shiftTime(hhmm, delta) {
+  const t = minutes(hhmm) + delta;
+  return `${pad(Math.floor(t / 60))}:${pad(t % 60)}`;
+}
+
 // The day's timeline: [{ start, end, title, detail, block, kind }]
 function daySchedule(d) {
   const letter = rotationDay(d);
@@ -168,6 +176,7 @@ function daySchedule(d) {
 
   ROTATION[letter].forEach((block, i) => {
     const bell = bells[i];
+    const period = i + 1;
     const doubled = (DOUBLE_PERIODS[letter] || {})[block];
     const cls = CLASSES[doubled || block];
     let title = `Block ${block} · ${cls ? cls.course : "Free"}`;
@@ -175,18 +184,20 @@ function daySchedule(d) {
     const detail = cls ? `Room ${cls.room} · ${cls.teacher}` : "";
     const kind = cls ? "class" : "free";
 
-    if (bell.lunch && LUNCH) {
-      // Split the lunch block into lunch + class time.
-      if (minutes(LUNCH.start) > minutes(bell.start)) {
-        items.push({ start: bell.start, end: LUNCH.start, title, detail, block, kind });
-      }
-      items.push({ start: LUNCH.start, end: LUNCH.end, title: "Lunch", kind: "lunch" });
-      if (minutes(LUNCH.end) < minutes(bell.end)) {
-        items.push({ start: LUNCH.end, end: bell.end, title, detail, block, kind });
+    const wave = bell.lunch && cls ? lunchWave(cls) : null;
+    if (wave) {
+      // Split the lunch block into class time and lunch for this wave.
+      const shift = early ? EARLY_RELEASE_LUNCH_SHIFT_MIN : 0;
+      for (const part of LUNCH_WAVES[wave]) {
+        const start = shiftTime(part.start, shift);
+        const end = shiftTime(part.end, shift);
+        items.push(part.lunch
+          ? { start, end, title: `Lunch · Wave ${wave}`, kind: "lunch" }
+          : { start, end, title, detail, block, kind, period });
       }
     } else {
       items.push({
-        start: bell.start, end: bell.end, block, kind,
+        start: bell.start, end: bell.end, block, kind, period,
         title: bell.lunch ? `${title} + Lunch` : title,
         detail: bell.lunch ? ["Lunch block", detail].filter(Boolean).join(" · ") : detail,
       });
@@ -290,7 +301,7 @@ function renderDay() {
     el.style.top = `${minutes(item.start)}px`;
     el.style.height = `${minutes(item.end) - minutes(item.start)}px`;
     el.innerHTML = `<div class="slot-title"></div><div class="slot-meta"></div>`;
-    el.children[0].textContent = item.title;
+    el.children[0].textContent = (item.period ? `P${item.period} · ` : "") + item.title;
     el.children[1].textContent = `${clockLabel(item.start)} – ${clockLabel(item.end)}` +
       (item.detail ? ` · ${item.detail}` : "");
     el.title = el.textContent;

@@ -45,7 +45,8 @@ const REGULAR_BELLS = [
   { start: "13:30", end: "14:25" },
 ];
 
-// Early release day (12:25 dismissal). Block 6 is the lunch block.
+// Early release day (12:25 dismissal). These are the six periods of the
+// day in order (whatever blocks the rotation day has); the 6th is the lunch block.
 const EARLY_RELEASE_KICKOFF = { start: "07:30", end: "07:50", title: "Cardinal Kick-Off" };
 const EARLY_RELEASE_BELLS = [
   { start: "07:55", end: "08:31" },
@@ -56,6 +57,36 @@ const EARLY_RELEASE_BELLS = [
   { start: "11:00", end: "12:25", lunch: true },
 ];
 
-// Lunch inside the lunch block. Set start/end (e.g. { start: "12:00", end: "12:30" })
-// to split the block into lunch + class; leave null to show the whole block.
-const LUNCH = null;
+// Lunch waves (1st semester 2026-27). Your wave is set by the room of the
+// class you have in the lunch block. Times are for the regular lunch block
+// (12:00–1:25); bells ring at 12:15, 12:35 and 12:55.
+const LUNCH_WAVES = {
+  1: [
+    { start: "11:55", end: "12:25", lunch: true },
+    { start: "12:30", end: "13:25" },
+  ],
+  2: [
+    { start: "12:00", end: "12:15" },
+    { start: "12:15", end: "12:45", lunch: true },
+    { start: "12:45", end: "13:25" },
+  ],
+  3: [
+    { start: "12:00", end: "12:35" },
+    { start: "12:35", end: "13:05", lunch: true },
+    { start: "13:05", end: "13:25" },
+  ],
+  4: [
+    { start: "12:00", end: "12:55" },
+    { start: "12:55", end: "13:25", lunch: true },
+  ],
+};
+
+// Wave by room hundreds: Art (700s) and Science (900s) = 1, Bella (100s) and
+// Clark (200s) = 2, Folsom (300s) and Sheldon (400s) = 3, Cantor (500s),
+// 600s and Music (800s) = 4. PE/Health (Gym, Media Center) is also wave 4:
+// add `lunchWave: 4` to a class to override the room rule.
+const LUNCH_WAVE_BY_HUNDREDS = { 1: 2, 2: 2, 3: 3, 4: 3, 5: 4, 6: 4, 7: 1, 8: 4, 9: 1 };
+
+// The early release lunch block (11:00–12:25) is the same length as the
+// regular one, so the wave times are shifted one hour earlier on those days.
+const EARLY_RELEASE_LUNCH_SHIFT_MIN = -60;
