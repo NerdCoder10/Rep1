@@ -636,6 +636,31 @@ async function refreshWeather() {
   renderWeatherStatus();
 }
 
+/* ---------------------------------------------------------------------------
+ * Auto-update: browsers keep old copies of the site's files. Check
+ * version.json (never cached) and reload with fresh files when it changes.
+ * ------------------------------------------------------------------------- */
+const APP_VERSION = document.querySelector('meta[name="app-version"]').content;
+document.getElementById("appVersion").textContent = `Version ${APP_VERSION}`;
+
+async function checkForUpdate() {
+  try {
+    const res = await fetch(`version.json?t=${Date.now()}`, { cache: "no-store" });
+    if (!res.ok) return;
+    const { version } = await res.json();
+    // Only try once per version, so a stale copy can never cause a reload loop.
+    const tried = new URLSearchParams(location.search).get("v");
+    if (version && version !== APP_VERSION && version !== tried) {
+      // A new URL makes the browser fetch a fresh index.html, which points
+      // at the new versions of every script and stylesheet.
+      location.replace(`${location.pathname}?v=${encodeURIComponent(version)}`);
+    }
+  } catch { /* offline – try again later */ }
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkForUpdate(); });
+setInterval(checkForUpdate, 5 * 60 * 1000);
+checkForUpdate();
+
 loadWeatherCache();
 render();
 tick();

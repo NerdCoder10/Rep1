@@ -27,4 +27,6 @@ Every upcoming school day shows a ❄ chance that school is cancelled. It comes 
 
 Online with GitHub Pages: in the repo, go to **Settings → Pages**, set **Source** to "Deploy from a branch", pick the `claude/calendar-pdf-holiday-scanner-nk78gr` branch and the `/ (root)` folder, and click **Save**. After a minute or two the site is live at https://nerdcoder10.github.io/Rep1/.
 
+The site updates itself: it checks `version.json` every 5 minutes and whenever you switch back to the tab, and reloads with fresh files when the version changes. When you change the site, bump the version in `version.json` and everywhere it appears in `index.html` (the `app-version` meta tag and each `?v=` on the script and stylesheet links).
+
 On your computer: download the repo (**Code → Download ZIP**), unzip it, and double-click `index.html`.
