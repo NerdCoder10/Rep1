@@ -13,6 +13,7 @@
       <div class="clock-date" id="clockDate">&nbsp;</div>
       <div class="clock-sync" id="clockSync">Connecting to time.is…</div>
       <div class="now-class" id="nowClass"></div>
+      <div class="next-chance" id="nextChance"></div>
     </div>
     <div class="timeis">
       <a href="https://time.is/New_York" id="time_is_link" rel="nofollow" target="_blank">New York time from time.is:</a>
@@ -60,6 +61,7 @@
         <span><i class="sw info"></i>Key date</span>
         <span><i class="sw deadline"></i>Deadline</span>
         <span><i class="sw study"></i>Study</span>
+        <span>❄ % = chance school is cancelled</span>
       </div>
       <div class="month-grid" id="monthGrid"></div>
     </section>
@@ -75,11 +77,13 @@
     Times shown in New York (America/New_York). Clock synced with
     <a href="https://time.is/New_York" target="_blank" rel="nofollow">time.is</a>.
     School dates from the 2026-27 Greenwich Public Schools District Calendar (Rev. 9/25/2025).
+    <br><span id="weatherStatus"></span>
   </footer>
 
   <script src="school-calendar.js"></script>
   <script src="schedule.js"></script>
   <script src="planner.js"></script>
+  <script src="closure.js"></script>
   <script src="app.js"></script>
   <!-- time.is widget: provides the official New York time used to correct the clock -->
   <script src="https://widget.time.is/t.js"></script>

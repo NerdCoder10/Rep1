@@ -313,6 +313,17 @@ function renderDay() {
       : `Day ${letter} · Regular schedule`;
     banner.appendChild(div);
   }
+  const chance = closureChance(d);
+  if (chance) {
+    const div = document.createElement("div");
+    div.className = `banner chance ${chanceLevel(chance.p)}`;
+    div.innerHTML = `<div class="chance-head"><span class="chance-pct"></span> chance school is cancelled</div>
+      <div class="chance-why"></div>`;
+    div.querySelector(".chance-pct").textContent = formatChance(chance.p);
+    div.querySelector(".chance-why").textContent = chance.reasons.join(" · ") +
+      (chance.source === "forecast" && chance.daysAhead > 3 ? ` · ${chance.daysAhead}-day forecast, blended with the seasonal average` : "");
+    banner.appendChild(div);
+  }
 
   const list = document.getElementById("hours");
   list.innerHTML = "";
@@ -452,6 +463,15 @@ function renderMonth() {
       cell.appendChild(chip);
     }
 
+    const chance = closureChance(d);
+    if (chance) {
+      const badge = document.createElement("span");
+      badge.className = `chance-badge ${chanceLevel(chance.p)}` + (chance.source === "seasonal" ? " seasonal" : "");
+      badge.textContent = formatChance(chance.p);
+      badge.title = `Chance school is cancelled: ${formatChance(chance.p)} – ${chance.reasons.join(", ")}`;
+      cell.appendChild(badge);
+    }
+
     const date = d;
     cell.onclick = () => { state.date = date; setView("day"); };
     grid.appendChild(cell);
@@ -579,9 +599,47 @@ function tick() {
   updateNowLine(false);
   renderNextOff();
   renderDeadline();
+  renderNextChance();
   document.getElementById("nowClass").textContent = currentClass();
 }
 
+// Next school day after today (or today, before school ends) and its closure chance.
+function renderNextChance() {
+  const el = document.getElementById("nextChance");
+  const p = nyParts(clock.now());
+  let d = todayNY();
+  const items = daySchedule(d);
+  if (!items.length || p.hour * 60 + p.minute >= minutes(items[0].start)) d = addDays(d, 1);
+  for (let i = 0; i < 30 && !isSchoolDay(d); i++) d = addDays(d, 1);
+  const chance = closureChance(d);
+  if (!chance) { el.textContent = ""; return; }
+  el.className = `next-chance ${chanceLevel(chance.p)}`;
+  el.textContent = `${formatChance(chance.p)} chance school is cancelled ${shortDate(d).replace(/, \d{4}$/, "")}`;
+}
+
+function renderWeatherStatus() {
+  const el = document.getElementById("weatherStatus");
+  if (weather.fetchedAt) {
+    el.textContent = `Cancellation chances use the Open-Meteo forecast and National Weather Service alerts for ${LOCATION.name}, ` +
+      `updated ${new Date(weather.fetchedAt).toLocaleTimeString("en-US", { timeZone: TZ, hour: "numeric", minute: "2-digit" })}.` +
+      (weather.error ? " (Latest update failed – showing the last forecast.)" : "");
+  } else {
+    el.textContent = weather.error
+      ? "Weather forecast unavailable – cancellation chances show seasonal averages."
+      : "Loading weather forecast…";
+  }
+}
+
+async function refreshWeather() {
+  await fetchWeather();
+  render();
+  renderWeatherStatus();
+}
+
+loadWeatherCache();
 render();
 tick();
+renderWeatherStatus();
 setInterval(tick, 1000);
+refreshWeather();
+setInterval(refreshWeather, REFRESH_MS);

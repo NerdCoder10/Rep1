@@ -295,6 +295,30 @@ main { padding: 0 16px 24px; max-width: 1100px; margin: 0 auto; }
 .now-class { font-size: 0.85rem; font-weight: 600; margin-top: 4px; }
 .now-class:empty { display: none; }
 
+/* Cancellation chance */
+.banner.chance .chance-head { font-weight: 600; }
+.chance-pct { font-size: 1.3rem; font-weight: 800; }
+.chance-why { font-weight: 400; font-size: 0.85rem; margin-top: 2px; }
+.banner.chance.low, .chance-badge.low { background: var(--open-bg); color: var(--open-fg); }
+.banner.chance.mid, .chance-badge.mid { background: var(--early-bg); color: var(--early-fg); }
+.banner.chance.high, .chance-badge.high { background: var(--deadline-bg); color: var(--deadline-fg); }
+.chance-badge {
+  display: inline-block;
+  margin-top: 2px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-variant-numeric: tabular-nums;
+}
+.chance-badge.seasonal { font-weight: 500; opacity: 0.75; }
+.chance-badge::before { content: "❄ "; }
+.next-chance { font-size: 0.85rem; margin-top: 4px; display: inline-block; border-radius: 6px; padding: 1px 8px; }
+.next-chance:empty { display: none; }
+.next-chance.low { background: var(--open-bg); color: var(--open-fg); }
+.next-chance.mid { background: var(--early-bg); color: var(--early-fg); }
+.next-chance.high { background: var(--deadline-bg); color: var(--deadline-fg); font-weight: 700; }
+
 /* Month view */
 .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
 .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
@@ -304,6 +328,7 @@ main { padding: 0 16px 24px; max-width: 1100px; margin: 0 auto; }
 .sw.info { background: var(--info-fg); }
 .sw.deadline { background: var(--deadline-fg); }
 .sw.study { background: var(--study-fg); }
+.sw.chance { background: var(--open-fg); }
 
 .month-grid {
   display: grid;

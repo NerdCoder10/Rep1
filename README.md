@@ -21,6 +21,8 @@ The header shows a counter for the next day off: calendar days, school days left
 
 Personal deadlines and study blocks are in `planner.js`. They show in the Day and Month views, and the header counts down to the next hard deadline.
 
+Every upcoming school day shows a ❄ chance that school is cancelled. It comes from the Open-Meteo hourly forecast (snow, ice, wind chill, wind gusts, rain) and active National Weather Service alerts for Greenwich, blended with seasonal averages. Days beyond the 16-day forecast show the seasonal average only. The full formula is documented at the top of `closure.js`.
+
 ## Open it
 
 Online with GitHub Pages: in the repo, go to **Settings → Pages**, set **Source** to "Deploy from a branch", pick the `claude/calendar-pdf-holiday-scanner-nk78gr` branch and the `/ (root)` folder, and click **Save**. After a minute or two the site is live at https://nerdcoder10.github.io/Rep1/.
