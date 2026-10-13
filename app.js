@@ -619,11 +619,13 @@ function renderNextChance() {
   el.textContent = `${formatChance(chance.p)} chance school is cancelled ${shortDate(d).replace(/, \d{4}$/, "")}`;
 }
 
+const nyTime = (ms) => new Date(ms).toLocaleTimeString("en-US", { timeZone: TZ, hour: "numeric", minute: "2-digit" });
+
 function renderWeatherStatus() {
   const el = document.getElementById("weatherStatus");
   if (weather.fetchedAt) {
     el.textContent = `Cancellation chances use the Open-Meteo forecast and National Weather Service alerts for ${LOCATION.name}, ` +
-      `updated ${new Date(weather.fetchedAt).toLocaleTimeString("en-US", { timeZone: TZ, hour: "numeric", minute: "2-digit" })}.` +
+      `updated ${nyTime(weather.fetchedAt)}, next update ${nyTime(weather.fetchedAt + REFRESH_MS)}.` +
       (weather.error ? " (Latest update failed – showing the last forecast.)" : "");
   } else {
     el.textContent = weather.error
@@ -668,5 +670,16 @@ render();
 tick();
 renderWeatherStatus();
 setInterval(tick, 1000);
-refreshWeather();
-setInterval(refreshWeather, REFRESH_MS);
+// Update the forecast every 2 hours (counted from the last successful update,
+// which is remembered across page loads).
+let lastWeatherAttempt = 0;
+function maybeRefreshWeather() {
+  const now = Date.now();
+  const due = now - weather.fetchedAt >= REFRESH_MS || weather.error;
+  if (due && now - lastWeatherAttempt >= RETRY_MS) {
+    lastWeatherAttempt = now;
+    refreshWeather();
+  }
+}
+maybeRefreshWeather();
+setInterval(maybeRefreshWeather, 60 * 1000);
