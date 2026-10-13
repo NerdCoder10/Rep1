@@ -2,13 +2,19 @@
 
 A static calendar website for the 2026-27 Greenwich Public Schools school year.
 
-- **Day view** – the selected day hour by hour, with a live "now" line, school notices, and your own events (saved in your browser).
+- **Day view** – the selected day hour by hour, with a live "now" line, school notices, your class schedule for that rotation day (A–H), and your own events (saved in your browser).
 - **Month view** – a month grid with every no-school day, early release, and observance from the district calendar. Click a day to open it.
 - **Days Off view** – every holiday and break with no school, with a count of school days off and a countdown to the next one.
 
 The clock is always on New York time. It uses the official [time.is](https://time.is/New_York) widget and corrects for any drift in your device clock. If time.is can't be reached, it falls back to your device clock converted to New York time.
 
 School dates are in `school-calendar.js`, taken from the district calendar PDF (Rev. 9/25/2025).
+
+Classes, the A–H rotation and the bell times are in `schedule.js`:
+
+- Every open school weekday advances the rotation by one letter. No-school days are skipped. The rotation is anchored to Day G on Oct 13, 2026, which puts the first day of school, Aug 28, on Day A.
+- High school early release days (12:25 dismissal) use the early release bells, starting with Cardinal Kick-Off. Early releases marked K-8 or K-5 only keep the regular schedule.
+- Period 5 (12:00–1:25) is the lunch block. On early release days the lunch block is Block 6 (11:00–12:25). Set `LUNCH` in `schedule.js` to show your exact lunch time inside the block.
 
 ## Run it
 

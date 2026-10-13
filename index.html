@@ -12,6 +12,7 @@
       <div class="clock-time" id="clockTime">--:--:--</div>
       <div class="clock-date" id="clockDate">&nbsp;</div>
       <div class="clock-sync" id="clockSync">Connecting to time.is…</div>
+      <div class="now-class" id="nowClass"></div>
     </div>
     <div class="timeis">
       <a href="https://time.is/New_York" id="time_is_link" rel="nofollow" target="_blank">New York time from time.is:</a>
@@ -42,7 +43,10 @@
         <input type="text" id="eventTitle" placeholder="Add an event for this day" required aria-label="Event title">
         <button type="submit">Add</button>
       </form>
-      <ol class="hours" id="hours"></ol>
+      <div class="timeline">
+        <ol class="hours" id="hours"></ol>
+        <div class="layer" id="layer"></div>
+      </div>
     </section>
 
     <section id="monthView" class="view" hidden>
@@ -69,6 +73,7 @@
   </footer>
 
   <script src="school-calendar.js"></script>
+  <script src="schedule.js"></script>
   <script src="app.js"></script>
   <!-- time.is widget: provides the official New York time used to correct the clock -->
   <script src="https://widget.time.is/t.js"></script>

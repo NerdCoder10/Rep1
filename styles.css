@@ -120,6 +120,7 @@ main { padding: 0 16px 24px; max-width: 1100px; margin: 0 auto; }
 }
 .event-form input[type="text"] { flex: 1 1 200px; min-width: 0; }
 
+.timeline { position: relative; }
 .hours {
   list-style: none;
   margin: 0;
@@ -129,29 +130,81 @@ main { padding: 0 16px 24px; max-width: 1100px; margin: 0 auto; }
   border-radius: 10px;
   overflow: hidden;
 }
+/* 1px per minute: each hour row is exactly 60px tall. */
 .hour {
-  position: relative;
+  height: 60px;
   display: grid;
   grid-template-columns: 72px 1fr;
-  min-height: 52px;
   border-top: 1px solid var(--border);
 }
 .hour:first-child { border-top: 0; }
 .hour.current { background: var(--info-bg); }
 .hour-label {
-  padding: 6px 10px;
+  padding: 4px 10px;
   color: var(--muted);
   font-size: 0.8rem;
   border-right: 1px solid var(--border);
   font-variant-numeric: tabular-nums;
 }
-.hour-body { padding: 4px 8px; display: flex; flex-direction: column; gap: 4px; }
+.layer {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  left: 73px;
+  right: 1px;
+  pointer-events: none;
+}
+.layer > * { pointer-events: auto; }
+.slot {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  overflow: hidden;
+  border-radius: 6px;
+  border-left: 4px solid var(--blk);
+  background: var(--blk-bg);
+  color: var(--text);
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  line-height: 1.3;
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+.layer.split .slot { right: 40%; }
+.slot-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slot-meta { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slot.short { display: flex; gap: 8px; align-items: baseline; }
+.slot.short .slot-meta { flex: 1 1 0; min-width: 0; }
+.slot.free { --blk: var(--border); --blk-bg: var(--weekend); }
+.slot.free .slot-title { font-weight: 500; color: var(--muted); }
+.slot.kickoff, .slot.lunch { --blk: var(--early-fg); --blk-bg: var(--early-bg); }
+
+.blk1 { --blk: #d65f5f; --blk-bg: #f8dcdc; }
+.blk2 { --blk: #d98a3d; --blk-bg: #f9e3cd; }
+.blk3 { --blk: #c9a227; --blk-bg: #fbf0c8; }
+.blk4 { --blk: #5d9e5d; --blk-bg: #d9ecd5; }
+.blk5 { --blk: #5b7fd6; --blk-bg: #dbe4fa; }
+.blk6 { --blk: #8a6cc0; --blk-bg: #e6def4; }
+.blk7 { --blk: #c06b8f; --blk-bg: #f3dbe5; }
+.blk8 { --blk: #3f8a8c; --blk-bg: #d3e8e8; }
+@media (prefers-color-scheme: dark) {
+  .blk1 { --blk-bg: #3e2426; }
+  .blk2 { --blk-bg: #3d2c1c; }
+  .blk3 { --blk-bg: #3a3218; }
+  .blk4 { --blk-bg: #1f3320; }
+  .blk5 { --blk-bg: #1e2a45; }
+  .blk6 { --blk-bg: #2c2440; }
+  .blk7 { --blk-bg: #3a2330; }
+  .blk8 { --blk-bg: #183334; }
+}
+
 .now-line {
   position: absolute;
-  left: 72px;
+  left: 0;
   right: 0;
   height: 2px;
+  margin-top: -1px;
   background: var(--now);
+  z-index: 2;
   pointer-events: none;
 }
 .now-line::before {
@@ -165,6 +218,10 @@ main { padding: 0 16px 24px; max-width: 1100px; margin: 0 auto; }
   background: var(--now);
 }
 .user-event {
+  position: absolute;
+  left: 61%;
+  right: 6px;
+  height: 28px;
   display: flex;
   justify-content: space-between;
   gap: 8px;
@@ -172,15 +229,20 @@ main { padding: 0 16px 24px; max-width: 1100px; margin: 0 auto; }
   background: var(--accent);
   color: #fff;
   border-radius: 6px;
-  padding: 3px 8px;
-  font-size: 0.85rem;
+  padding: 0 8px;
+  font-size: 0.8rem;
+  overflow: hidden;
+  white-space: nowrap;
 }
+.user-event span { overflow: hidden; text-overflow: ellipsis; }
 .user-event button {
   background: transparent;
   border: 0;
   color: #fff;
   padding: 0 4px;
 }
+.now-class { font-size: 0.85rem; font-weight: 600; margin-top: 4px; }
+.now-class:empty { display: none; }
 
 /* Month view */
 .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
@@ -219,6 +281,7 @@ main { padding: 0 16px 24px; max-width: 1100px; margin: 0 auto; }
 .cell.no-school { background: var(--off-bg); }
 .cell:hover { outline: 2px solid var(--accent); outline-offset: -2px; }
 .cell-num { font-size: 0.85rem; font-weight: 600; display: inline-block; min-width: 24px; text-align: center; border-radius: 12px; }
+.day-letter { float: right; font-size: 0.7rem; color: var(--muted); padding: 2px 4px 0 0; }
 .cell.today .cell-num { background: var(--now); color: #fff; }
 .chip {
   display: block;

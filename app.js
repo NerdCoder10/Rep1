@@ -132,6 +132,82 @@ function weekdaysIn(ev) {
 }
 
 /* ---------------------------------------------------------------------------
+ * Class schedule: A–H rotation, regular and early release bells
+ * ------------------------------------------------------------------------- */
+const LETTERS = "ABCDEFGH";
+const isSchoolDay = (d) => d >= SCHOOL_YEAR.firstDay && d <= SCHOOL_YEAR.lastDay &&
+  dowOf(d) !== 0 && dowOf(d) !== 6 && !isNoSchool(d);
+// Early release days for high school (ones limited to K-8 / K-5 don't count).
+const isEarlyRelease = (d) => schoolEvents(d).some((e) => e.type === "early" && !e.grades);
+
+const rotationByDate = new Map();
+{
+  const days = [];
+  for (let d = SCHOOL_YEAR.firstDay; d <= SCHOOL_YEAR.lastDay; d = addDays(d, 1)) {
+    if (isSchoolDay(d)) days.push(d);
+  }
+  const anchor = days.indexOf(ROTATION_ANCHOR.date);
+  const anchorLetter = LETTERS.indexOf(ROTATION_ANCHOR.letter);
+  days.forEach((d, i) => {
+    rotationByDate.set(d, LETTERS[(((anchorLetter + i - anchor) % 8) + 8) % 8]);
+  });
+}
+const rotationDay = (d) => rotationByDate.get(d) || null;
+
+const minutes = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; };
+const clockLabel = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return formatTime(h, m); };
+
+// The day's timeline: [{ start, end, title, detail, block, kind }]
+function daySchedule(d) {
+  const letter = rotationDay(d);
+  if (!letter) return [];
+  const early = isEarlyRelease(d);
+  const bells = early ? EARLY_RELEASE_BELLS : REGULAR_BELLS;
+  const items = [];
+  if (early) items.push({ ...EARLY_RELEASE_KICKOFF, kind: "kickoff" });
+
+  ROTATION[letter].forEach((block, i) => {
+    const bell = bells[i];
+    const doubled = (DOUBLE_PERIODS[letter] || {})[block];
+    const cls = CLASSES[doubled || block];
+    let title = `Block ${block} · ${cls ? cls.course : "Free"}`;
+    if (doubled) title = `Block ${block} · ${cls.course} (double period with block ${doubled})`;
+    const detail = cls ? `Room ${cls.room} · ${cls.teacher}` : "";
+    const kind = cls ? "class" : "free";
+
+    if (bell.lunch && LUNCH) {
+      // Split the lunch block into lunch + class time.
+      if (minutes(LUNCH.start) > minutes(bell.start)) {
+        items.push({ start: bell.start, end: LUNCH.start, title, detail, block, kind });
+      }
+      items.push({ start: LUNCH.start, end: LUNCH.end, title: "Lunch", kind: "lunch" });
+      if (minutes(LUNCH.end) < minutes(bell.end)) {
+        items.push({ start: LUNCH.end, end: bell.end, title, detail, block, kind });
+      }
+    } else {
+      items.push({
+        start: bell.start, end: bell.end, block, kind,
+        title: bell.lunch ? `${title} + Lunch` : title,
+        detail: bell.lunch ? ["Lunch block", detail].filter(Boolean).join(" · ") : detail,
+      });
+    }
+  });
+  return items;
+}
+
+function currentClass() {
+  const p = nyParts(clock.now());
+  const now = p.hour * 60 + p.minute;
+  const today = todayNY();
+  const items = daySchedule(today);
+  const cur = items.find((it) => now >= minutes(it.start) && now < minutes(it.end));
+  if (cur) return `Now: ${cur.title} – until ${clockLabel(cur.end)}`;
+  const next = items.find((it) => minutes(it.start) > now);
+  if (next) return `Next: ${next.title} at ${clockLabel(next.start)}`;
+  return "";
+}
+
+/* ---------------------------------------------------------------------------
  * Personal events (saved in this browser)
  * ------------------------------------------------------------------------- */
 const STORE_KEY = "calendar.userEvents";
@@ -170,7 +246,8 @@ function render() {
 
 function renderDay() {
   const d = state.date;
-  document.getElementById("viewTitle").textContent = longDate(d);
+  const letter = rotationDay(d);
+  document.getElementById("viewTitle").textContent = longDate(d) + (letter ? ` · Day ${letter}` : "");
 
   const banner = document.getElementById("dayBanner");
   banner.innerHTML = "";
@@ -178,53 +255,85 @@ function renderDay() {
     const div = document.createElement("div");
     div.className = `banner ${ev.type}`;
     div.textContent = ev.type === "off" ? `No school – ${ev.title}`
-      : ev.type === "open" ? `${ev.title} (school open)` : ev.title;
+      : ev.type === "open" ? `${ev.title} (school open)`
+      : ev.grades ? `${ev.title} (${ev.grades} only – regular high school day)` : ev.title;
+    banner.appendChild(div);
+  }
+  if (letter) {
+    const div = document.createElement("div");
+    div.className = "banner info";
+    div.textContent = isEarlyRelease(d)
+      ? `Day ${letter} · Early release schedule – dismissal 12:25 PM`
+      : `Day ${letter} · Regular schedule`;
     banner.appendChild(div);
   }
 
   const list = document.getElementById("hours");
   list.innerHTML = "";
-  const mine = (userEvents[d] || []).slice().sort((a, b) => a.time.localeCompare(b.time));
   for (let h = 0; h < 24; h++) {
     const li = document.createElement("li");
     li.className = "hour";
     li.dataset.hour = h;
-    li.innerHTML = `<div class="hour-label">${formatTime(h, 0).replace(":00", "")}</div><div class="hour-body"></div>`;
-    const body = li.querySelector(".hour-body");
-    mine.forEach((ev) => {
-      if (+ev.time.slice(0, 2) !== h) return;
-      const item = document.createElement("div");
-      item.className = "user-event";
-      const [eh, em] = ev.time.split(":").map(Number);
-      item.innerHTML = `<span></span><button aria-label="Delete event">×</button>`;
-      item.firstChild.textContent = `${formatTime(eh, em)} · ${ev.title}`;
-      item.lastChild.onclick = () => {
-        userEvents[d] = userEvents[d].filter((x) => x !== ev);
-        if (!userEvents[d].length) delete userEvents[d];
-        saveUserEvents();
-        renderDay();
-      };
-      body.appendChild(item);
-    });
+    li.innerHTML = `<div class="hour-label">${formatTime(h, 0).replace(":00", "")}</div>`;
     list.appendChild(li);
+  }
+
+  const layer = document.getElementById("layer");
+  layer.innerHTML = "";
+  const mine = (userEvents[d] || []).slice().sort((a, b) => a.time.localeCompare(b.time));
+  layer.classList.toggle("split", mine.length > 0);
+
+  for (const item of daySchedule(d)) {
+    const el = document.createElement("div");
+    el.className = `slot ${item.kind}` + (item.block ? ` blk${item.block}` : "") +
+      (minutes(item.end) - minutes(item.start) < 45 ? " short" : "");
+    el.style.top = `${minutes(item.start)}px`;
+    el.style.height = `${minutes(item.end) - minutes(item.start)}px`;
+    el.innerHTML = `<div class="slot-title"></div><div class="slot-meta"></div>`;
+    el.children[0].textContent = item.title;
+    el.children[1].textContent = `${clockLabel(item.start)} – ${clockLabel(item.end)}` +
+      (item.detail ? ` · ${item.detail}` : "");
+    el.title = el.textContent;
+    layer.appendChild(el);
+  }
+
+  for (const ev of mine) {
+    const el = document.createElement("div");
+    el.className = "user-event";
+    el.style.top = `${minutes(ev.time)}px`;
+    el.innerHTML = `<span></span><button aria-label="Delete event">×</button>`;
+    el.firstChild.textContent = `${clockLabel(ev.time)} · ${ev.title}`;
+    el.lastChild.onclick = () => {
+      userEvents[d] = userEvents[d].filter((x) => x !== ev);
+      if (!userEvents[d].length) delete userEvents[d];
+      saveUserEvents();
+      renderDay();
+    };
+    layer.appendChild(el);
   }
   updateNowLine(true);
 }
 
 function updateNowLine(scroll) {
+  const layer = document.getElementById("layer");
   const list = document.getElementById("hours");
-  list.querySelectorAll(".now-line").forEach((n) => n.remove());
+  layer.querySelectorAll(".now-line").forEach((n) => n.remove());
   list.querySelectorAll(".hour.current").forEach((n) => n.classList.remove("current"));
-  if (state.view !== "day" || state.date !== todayNY()) return;
+  if (state.view !== "day") return;
+  const isToday = state.date === todayNY();
   const p = nyParts(clock.now());
-  const row = list.querySelector(`[data-hour="${p.hour}"]`);
-  if (!row) return;
-  row.classList.add("current");
-  const line = document.createElement("div");
-  line.className = "now-line";
-  line.style.top = `${((p.minute * 60 + p.second) / 3600) * 100}%`;
-  row.appendChild(line);
-  if (scroll) row.scrollIntoView({ block: "center" });
+  if (isToday) {
+    list.querySelector(`[data-hour="${p.hour}"]`).classList.add("current");
+    const line = document.createElement("div");
+    line.className = "now-line";
+    line.style.top = `${p.hour * 60 + p.minute + p.second / 60}px`;
+    layer.appendChild(line);
+  }
+  if (scroll) {
+    // Today: centre on the current time. Other days: start of the school day.
+    const target = isToday ? p.hour : 7;
+    list.querySelector(`[data-hour="${target}"]`).scrollIntoView({ block: isToday ? "center" : "start" });
+  }
 }
 
 function renderMonth() {
@@ -258,6 +367,13 @@ function renderMonth() {
     num.className = "cell-num";
     num.textContent = Number(d.slice(8));
     cell.appendChild(num);
+    const letter = rotationDay(d);
+    if (letter) {
+      const tag = document.createElement("span");
+      tag.className = "day-letter";
+      tag.textContent = `Day ${letter}`;
+      cell.appendChild(tag);
+    }
 
     for (const ev of schoolEvents(d)) {
       const chip = document.createElement("span");
@@ -370,6 +486,7 @@ function tick() {
   if (lastDay && today !== lastDay) render(); // midnight in New York
   lastDay = today;
   updateNowLine(false);
+  document.getElementById("nowClass").textContent = currentClass();
 }
 
 render();

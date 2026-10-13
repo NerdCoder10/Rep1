@@ -6,6 +6,7 @@
 //   "early"   - early release day (school is open, students leave early)
 //   "open"    - observance listed on the calendar, but schools are OPEN
 //   "info"    - other key dates (first/last day, teacher-only days, etc.)
+// grades: set when an early release only applies to those grades (not high school)
 
 const SCHOOL_YEAR = {
   firstDay: "2026-08-28",
@@ -40,7 +41,7 @@ const SCHOOL_EVENTS = [
 
   // December 2026
   { start: "2026-12-07", title: "Teacher PLD - Schools Closed (K-8 Conferences)", type: "off" },
-  { start: "2026-12-08", title: "K-8 Conferences - K-8 Early Release", type: "early" },
+  { start: "2026-12-08", title: "K-8 Conferences - K-8 Early Release", type: "early", grades: "K-8" },
   { start: "2026-12-10", title: "Elementary Conferences (evening)", type: "info" },
   { start: "2026-12-22", title: "Early Release", type: "early" },
   { start: "2026-12-23", end: "2026-12-31", title: "Holiday Recess", type: "off" },
@@ -57,9 +58,9 @@ const SCHOOL_EVENTS = [
   { start: "2027-02-15", title: "Presidents' Day", type: "off" },
 
   // March 2027
-  { start: "2027-03-08", title: "K-5 Conferences - K-5 Early Release", type: "early" },
+  { start: "2027-03-08", title: "K-5 Conferences - K-5 Early Release", type: "early", grades: "K-5" },
   { start: "2027-03-10", title: "Eid al-Fitr", type: "open" },
-  { start: "2027-03-17", title: "K-5 Early Release, K-5 Conferences", type: "early" },
+  { start: "2027-03-17", title: "K-5 Early Release, K-5 Conferences", type: "early", grades: "K-5" },
   { start: "2027-03-23", title: "Teacher Collab - Early Release", type: "early" },
   { start: "2027-03-26", title: "Good Friday", type: "off" },
 
