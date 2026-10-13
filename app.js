@@ -313,16 +313,18 @@ function renderDay() {
       : `Day ${letter} · Regular schedule`;
     banner.appendChild(div);
   }
+  // Cancellation chance: large and centered at the top of the schedule.
   const chance = closureChance(d);
   if (chance) {
     const div = document.createElement("div");
-    div.className = `banner chance ${chanceLevel(chance.p)}`;
-    div.innerHTML = `<div class="chance-head"><span class="chance-pct"></span> chance school is cancelled</div>
+    div.className = `chance-card ${chanceLevel(chance.p)}`;
+    div.innerHTML = `<div class="chance-pct"></div>
+      <div class="chance-label">chance school is cancelled</div>
       <div class="chance-why"></div>`;
     div.querySelector(".chance-pct").textContent = formatChance(chance.p);
     div.querySelector(".chance-why").textContent = chance.reasons.join(" · ") +
       (chance.source === "forecast" && chance.daysAhead > 3 ? ` · ${chance.daysAhead}-day forecast, blended with the seasonal average` : "");
-    banner.appendChild(div);
+    banner.prepend(div);
   }
 
   const list = document.getElementById("hours");

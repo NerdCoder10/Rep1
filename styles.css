@@ -296,12 +296,23 @@ main { padding: 0 16px 24px; max-width: 1100px; margin: 0 auto; }
 .now-class:empty { display: none; }
 
 /* Cancellation chance */
-.banner.chance .chance-head { font-weight: 600; }
-.chance-pct { font-size: 1.3rem; font-weight: 800; }
-.chance-why { font-weight: 400; font-size: 0.85rem; margin-top: 2px; }
-.banner.chance.low, .chance-badge.low { background: var(--open-bg); color: var(--open-fg); }
-.banner.chance.mid, .chance-badge.mid { background: var(--early-bg); color: var(--early-fg); }
-.banner.chance.high, .chance-badge.high { background: var(--deadline-bg); color: var(--deadline-fg); }
+.chance-card {
+  text-align: center;
+  border: 2px solid var(--level-fg);
+  background: var(--level-bg);
+  color: var(--level-fg);
+  border-radius: 14px;
+  padding: 14px 16px 12px;
+  margin: 0 auto 12px;
+  max-width: 520px;
+}
+.chance-card .chance-pct { font-size: 3.2rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.chance-card .chance-label { font-size: 1.05rem; font-weight: 700; margin-top: 4px; }
+.chance-card .chance-why { font-size: 0.85rem; margin-top: 6px; opacity: 0.9; }
+.low { --level-bg: var(--info-bg); --level-fg: var(--info-fg); }
+.mid { --level-bg: var(--early-bg); --level-fg: var(--early-fg); }
+.high { --level-bg: var(--deadline-bg); --level-fg: var(--deadline-fg); }
+.chance-badge.low, .chance-badge.mid, .chance-badge.high { background: var(--level-bg); color: var(--level-fg); }
 .chance-badge {
   display: inline-block;
   margin-top: 2px;
@@ -315,9 +326,7 @@ main { padding: 0 16px 24px; max-width: 1100px; margin: 0 auto; }
 .chance-badge::before { content: "❄ "; }
 .next-chance { font-size: 0.85rem; margin-top: 4px; display: inline-block; border-radius: 6px; padding: 1px 8px; }
 .next-chance:empty { display: none; }
-.next-chance.low { background: var(--open-bg); color: var(--open-fg); }
-.next-chance.mid { background: var(--early-bg); color: var(--early-fg); }
-.next-chance.high { background: var(--deadline-bg); color: var(--deadline-fg); font-weight: 700; }
+.next-chance.low, .next-chance.mid, .next-chance.high { background: var(--level-bg); color: var(--level-fg); font-weight: 600; }
 
 /* Month view */
 .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
