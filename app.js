@@ -205,6 +205,8 @@ function plannerItems(d) {
   for (const it of PLANNER) {
     if (it.type === "block" && d >= it.start && d <= it.end) {
       items.push({ start: it.from, end: it.to, title: it.title, kind: "study" });
+    } else if (it.type === "weekly" && dowOf(d) === it.day && (!it.schoolDaysOnly || isSchoolDay(d))) {
+      items.push({ start: it.from, end: it.to, title: it.title, kind: "meeting" });
     } else if (it.type === "deadline" && it.date === d) {
       items.push({ start: it.time, end: it.time, title: it.title, kind: "deadline" });
     }
@@ -342,7 +344,13 @@ function renderDay() {
   const mine = (userEvents[d] || []).slice().sort((a, b) => a.time.localeCompare(b.time));
   layer.classList.toggle("split", mine.length > 0);
 
-  for (const item of dayItems(d)) {
+  const items = dayItems(d);
+  const timed = items.filter((it) => it.kind !== "deadline");
+  const overlaps = (a) => timed.some((b) => b !== a &&
+    minutes(a.start) < minutes(b.end) && minutes(b.start) < minutes(a.end));
+  const isPersonal = (it) => it.kind === "study" || it.kind === "meeting";
+
+  for (const item of items) {
     if (item.kind === "deadline") {
       const el = document.createElement("div");
       el.className = "deadline-line";
@@ -355,7 +363,8 @@ function renderDay() {
     }
     const el = document.createElement("div");
     el.className = `slot ${item.kind}` + (item.block ? ` blk${item.block}` : "") +
-      (minutes(item.end) - minutes(item.start) < 45 ? " short" : "");
+      (minutes(item.end) - minutes(item.start) < 45 ? " short" : "") +
+      (overlaps(item) ? (isPersonal(item) ? " side-right" : " side-left") : "");
     el.style.top = `${minutes(item.start)}px`;
     el.style.height = `${minutes(item.end) - minutes(item.start)}px`;
     el.innerHTML = `<div class="slot-title"></div><div class="slot-meta"></div>`;

@@ -204,6 +204,10 @@ main { padding: 0 16px 24px; max-width: 1100px; margin: 0 auto; }
 .slot.free { --blk: var(--border); --blk-bg: var(--weekend); }
 .slot.free .slot-title { font-weight: 500; color: var(--muted); }
 .slot.study { --blk: var(--study-fg); --blk-bg: var(--study-bg); }
+.slot.meeting { --blk: var(--accent); --blk-bg: var(--info-bg); }
+/* Two things at the same time: school on the left, personal on the right. */
+.slot.side-left { right: 50%; }
+.slot.side-right { left: 50%; }
 .deadline-line {
   position: absolute;
   left: 0;
@@ -337,6 +341,7 @@ main { padding: 0 16px 24px; max-width: 1100px; margin: 0 auto; }
 .sw.info { background: var(--info-fg); }
 .sw.deadline { background: var(--deadline-fg); }
 .sw.study { background: var(--study-fg); }
+.sw.meeting { background: var(--accent); }
 .sw.chance { background: var(--open-fg); }
 
 .month-grid {
@@ -389,6 +394,7 @@ main { padding: 0 16px 24px; max-width: 1100px; margin: 0 auto; }
 .chip.user { background: var(--accent); color: #fff; }
 .chip.deadline { background: var(--deadline-fg); color: var(--surface); font-weight: 600; }
 .chip.study { background: var(--study-bg); color: var(--study-fg); }
+.chip.meeting { background: var(--info-bg); color: var(--info-fg); }
 
 @media (max-width: 640px) {
   .cell { min-height: 64px; }
