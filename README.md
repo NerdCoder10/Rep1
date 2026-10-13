@@ -17,6 +17,10 @@ Classes, the A–H rotation and the bell times are in `schedule.js`:
 - On early release days, "Block 1–6" on the bell schedule means the 1st–6th period of that rotation day, not block numbers. The Day view labels each slot with its period (P1–P6) and block.
 - Period 5 (12:00–1:25) is the lunch block (period 6, 11:00–12:25, on early release days). The lunch wave comes from the room of the class you have then, using the 1st semester lunch schedule. Early release days use their own lunch wave times.
 
-## Run it
+The header shows a counter for the next day off: calendar days, school days left, and a live countdown to midnight when it starts.
 
-Open `index.html` in a browser, or serve the folder with `python3 -m http.server`. Any static host works too, for example GitHub Pages.
+## Open it
+
+Online with GitHub Pages: in the repo, go to **Settings → Pages**, set **Source** to "Deploy from a branch", pick the `claude/calendar-pdf-holiday-scanner-nk78gr` branch and the `/ (root)` folder, and click **Save**. After a minute or two the site is live at https://nerdcoder10.github.io/Rep1/.
+
+On your computer: download the repo (**Code → Download ZIP**), unzip it, and double-click `index.html`.

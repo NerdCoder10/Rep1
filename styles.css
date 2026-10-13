@@ -81,10 +81,17 @@ button:hover { border-color: var(--accent); }
 .next-off {
   background: var(--off-bg);
   color: var(--off-fg);
-  border-radius: 10px;
-  padding: 8px 12px;
-  font-size: 0.9rem;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 0.85rem;
+  min-width: 220px;
 }
+.count-today { font-weight: 700; margin-bottom: 6px; }
+.count-label { text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.7rem; font-weight: 600; }
+.count-title { font-weight: 600; }
+.count-main { font-size: 1rem; font-weight: 600; }
+.count-num { font-size: 2.4rem; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.count-live { font-variant-numeric: tabular-nums; opacity: 0.85; }
 .next-off:empty { display: none; }
 
 /* Toolbar */

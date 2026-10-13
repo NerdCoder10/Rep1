@@ -434,18 +434,46 @@ function renderDaysOff() {
   document.getElementById("offNote").textContent = "Note: " + SCHOOL_YEAR.note;
 }
 
+// Epoch ms of midnight at the start of a date in New York.
+function nyMidnight(d) {
+  let ms = toUTC(d) + 5 * 3600000; // midnight EST/EDT is 04:00–05:00 UTC
+  const p = nyParts(ms);
+  return ms - (p.hour * 3600 + p.minute * 60 + p.second) * 1000;
+}
+
+// Day counter until the next day off, with a live countdown to its midnight.
 function renderNextOff() {
   const today = todayNY();
   const box = document.getElementById("nextOff");
-  if (isNoSchool(today) && dowOf(today) !== 0 && dowOf(today) !== 6) {
-    const ev = schoolEvents(today).find((e) => e.type === "off");
-    box.textContent = `No school today – ${ev.title} 🎉`;
+  const offToday = isNoSchool(today) ? schoolEvents(today).find((e) => e.type === "off") : null;
+  const next = daysOff.find((ev) => ev.start > today && !(offToday && ev === offToday));
+
+  if (!next) {
+    box.innerHTML = `<div class="count-label">No more days off this school year – summer starts after ${shortDate(SCHOOL_YEAR.lastDay)}!</div>`;
     return;
   }
-  const next = daysOff.find((ev) => ev.start > today);
-  if (!next) { box.textContent = ""; return; }
+
   const days = Math.round((toUTC(next.start) - toUTC(today)) / DAY_MS);
-  box.textContent = `Next day off: ${next.title}, ${shortDate(next.start)} (in ${days} day${days === 1 ? "" : "s"})`;
+  // Count today only while school is still in session.
+  const items = daySchedule(today);
+  const p = nyParts(clock.now());
+  const todayCounts = items.length > 0 && p.hour * 60 + p.minute < minutes(items[items.length - 1].end);
+  let schoolDays = todayCounts ? 1 : 0;
+  for (let d = addDays(today, 1); d < next.start; d = addDays(d, 1)) if (isSchoolDay(d)) schoolDays++;
+  const left = Math.max(0, nyMidnight(next.start) - clock.now());
+  const h = Math.floor(left / 3600000) % 24;
+  const m = Math.floor(left / 60000) % 60;
+  const sec = Math.floor(left / 1000) % 60;
+
+  box.innerHTML = `
+    ${offToday ? `<div class="count-today"></div>` : ""}
+    <div class="count-label">Next day off</div>
+    <div class="count-title"></div>
+    <div class="count-main"><span class="count-num">${days}</span> day${days === 1 ? "" : "s"}</div>
+    <div class="count-sub">${schoolDays} school day${schoolDays === 1 ? "" : "s"} to go${todayCounts ? " (counting today)" : ""}</div>
+    <div class="count-live">${Math.floor(left / DAY_MS)}d ${pad(h)}h ${pad(m)}m ${pad(sec)}s</div>`;
+  if (offToday) box.querySelector(".count-today").textContent = `No school today – ${offToday.title} 🎉`;
+  box.querySelector(".count-title").textContent = `${next.title} · ${shortDate(next.start)}`;
 }
 
 function step(dir) {
@@ -490,6 +518,7 @@ function tick() {
   if (lastDay && today !== lastDay) render(); // midnight in New York
   lastDay = today;
   updateNowLine(false);
+  renderNextOff();
   document.getElementById("nowClass").textContent = currentClass();
 }
 
