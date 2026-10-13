@@ -1,0 +1,377 @@
+"use strict";
+
+const TZ = "America/New_York";
+const DAY_MS = 86400000;
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July",
+  "August", "September", "October", "November", "December"];
+const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/* ---------------------------------------------------------------------------
+ * Clock: New York time, corrected against time.is
+ *
+ * The time.is widget writes the official New York time into #New_York_z161.
+ * Every second we compare that reading with the device clock and keep the
+ * difference as an offset, so the whole calendar runs on time.is time even if
+ * the device clock is wrong. If time.is can't be reached, we fall back to the
+ * device clock converted to New York time.
+ * ------------------------------------------------------------------------- */
+const clock = {
+  offsetMs: 0,
+  synced: false,
+  lastSync: 0,
+  now() { return Date.now() + this.offsetMs; },
+};
+
+const nyFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: TZ, hourCycle: "h23",
+  year: "numeric", month: "2-digit", day: "2-digit",
+  hour: "2-digit", minute: "2-digit", second: "2-digit", weekday: "short",
+});
+
+function nyParts(ms) {
+  const p = {};
+  for (const { type, value } of nyFormatter.formatToParts(new Date(ms))) p[type] = value;
+  return {
+    year: +p.year, month: +p.month, day: +p.day,
+    hour: +p.hour % 24, minute: +p.minute, second: +p.second,
+  };
+}
+
+function syncFromTimeIs() {
+  const el = document.getElementById("New_York_z161");
+  const m = el && el.textContent.match(/(\d{1,2}):(\d{2}):(\d{2})\s*([AP]M)?/i);
+  if (!m) return;
+  let h = +m[1];
+  if (m[4]) {
+    const pm = m[4].toUpperCase() === "PM";
+    if (h === 12) h = pm ? 12 : 0;
+    else if (pm) h += 12;
+  }
+  const timeIsSec = h * 3600 + +m[2] * 60 + +m[3];
+  const local = nyParts(Date.now());
+  const localSec = local.hour * 3600 + local.minute * 60 + local.second;
+  let diff = timeIsSec - localSec;
+  if (diff > 43200) diff -= 86400;
+  if (diff < -43200) diff += 86400;
+  // Ignore sub-second jitter between the widget tick and ours.
+  if (Math.abs(diff * 1000 - clock.offsetMs) >= 1000 || !clock.synced) clock.offsetMs = diff * 1000;
+  clock.synced = true;
+  clock.lastSync = Date.now();
+}
+
+function renderClock() {
+  syncFromTimeIs();
+  const p = nyParts(clock.now());
+  document.getElementById("clockTime").textContent = formatTime(p.hour, p.minute, p.second);
+  document.getElementById("clockDate").textContent = longDate(ymd(p.year, p.month, p.day)) + " · New York";
+
+  const sync = document.getElementById("clockSync");
+  if (clock.synced && Date.now() - clock.lastSync < 10000) {
+    const off = Math.round(clock.offsetMs / 1000);
+    sync.className = "clock-sync ok";
+    sync.textContent = "Synced with time.is" +
+      (off ? ` (your device clock is ${Math.abs(off)}s ${off > 0 ? "behind" : "ahead"})` : "");
+  } else if (performance.now() > 8000) {
+    sync.className = "clock-sync warn";
+    sync.textContent = "time.is unreachable – using device clock in New York time";
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Date helpers (calendar dates as "YYYY-MM-DD" strings, arithmetic in UTC)
+ * ------------------------------------------------------------------------- */
+const pad = (n) => String(n).padStart(2, "0");
+const ymd = (y, m, d) => `${y}-${pad(m)}-${pad(d)}`;
+const toUTC = (s) => { const [y, m, d] = s.split("-").map(Number); return Date.UTC(y, m - 1, d); };
+const fromUTC = (ms) => { const d = new Date(ms); return ymd(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()); };
+const addDays = (s, n) => fromUTC(toUTC(s) + n * DAY_MS);
+const dowOf = (s) => new Date(toUTC(s)).getUTCDay();
+const todayNY = () => { const p = nyParts(clock.now()); return ymd(p.year, p.month, p.day); };
+
+function addMonths(s, n) {
+  const [y, m] = s.split("-").map(Number);
+  const d = new Date(Date.UTC(y, m - 1 + n, 1));
+  return ymd(d.getUTCFullYear(), d.getUTCMonth() + 1, 1);
+}
+
+function longDate(s) {
+  return new Date(toUTC(s)).toLocaleDateString("en-US",
+    { timeZone: "UTC", weekday: "long", month: "long", day: "numeric", year: "numeric" });
+}
+function shortDate(s) {
+  return new Date(toUTC(s)).toLocaleDateString("en-US",
+    { timeZone: "UTC", weekday: "short", month: "short", day: "numeric", year: "numeric" });
+}
+function formatTime(h, m, s) {
+  const ampm = h < 12 ? "AM" : "PM";
+  const h12 = h % 12 || 12;
+  return s === undefined ? `${h12}:${pad(m)} ${ampm}` : `${h12}:${pad(m)}:${pad(s)} ${ampm}`;
+}
+
+/* ---------------------------------------------------------------------------
+ * School calendar lookups
+ * ------------------------------------------------------------------------- */
+const eventsByDate = new Map();
+for (const ev of SCHOOL_EVENTS) {
+  for (let d = ev.start; d <= (ev.end || ev.start); d = addDays(d, 1)) {
+    if (!eventsByDate.has(d)) eventsByDate.set(d, []);
+    eventsByDate.get(d).push(ev);
+  }
+}
+const schoolEvents = (d) => eventsByDate.get(d) || [];
+const isNoSchool = (d) => schoolEvents(d).some((e) => e.type === "off");
+const daysOff = SCHOOL_EVENTS.filter((e) => e.type === "off");
+
+function weekdaysIn(ev) {
+  let n = 0;
+  for (let d = ev.start; d <= (ev.end || ev.start); d = addDays(d, 1)) {
+    const w = dowOf(d);
+    if (w !== 0 && w !== 6) n++;
+  }
+  return n;
+}
+
+/* ---------------------------------------------------------------------------
+ * Personal events (saved in this browser)
+ * ------------------------------------------------------------------------- */
+const STORE_KEY = "calendar.userEvents";
+let userEvents = {};
+try { userEvents = JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { userEvents = {}; }
+function saveUserEvents() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(userEvents)); } catch { /* storage unavailable */ }
+}
+
+/* ---------------------------------------------------------------------------
+ * Views
+ * ------------------------------------------------------------------------- */
+const state = { view: "day", date: null };
+
+function setView(view) {
+  state.view = view;
+  try { localStorage.setItem("calendar.view", view); } catch { /* ignore */ }
+  render();
+}
+
+function render() {
+  if (!state.date) state.date = todayNY();
+  for (const tab of document.querySelectorAll(".tab")) {
+    tab.setAttribute("aria-selected", String(tab.dataset.view === state.view));
+  }
+  document.getElementById("dayView").hidden = state.view !== "day";
+  document.getElementById("monthView").hidden = state.view !== "month";
+  document.getElementById("offView").hidden = state.view !== "off";
+  document.querySelector(".nav").style.visibility = state.view === "off" ? "hidden" : "visible";
+
+  if (state.view === "day") renderDay();
+  else if (state.view === "month") renderMonth();
+  else renderDaysOff();
+  renderNextOff();
+}
+
+function renderDay() {
+  const d = state.date;
+  document.getElementById("viewTitle").textContent = longDate(d);
+
+  const banner = document.getElementById("dayBanner");
+  banner.innerHTML = "";
+  for (const ev of schoolEvents(d)) {
+    const div = document.createElement("div");
+    div.className = `banner ${ev.type}`;
+    div.textContent = ev.type === "off" ? `No school – ${ev.title}`
+      : ev.type === "open" ? `${ev.title} (school open)` : ev.title;
+    banner.appendChild(div);
+  }
+
+  const list = document.getElementById("hours");
+  list.innerHTML = "";
+  const mine = (userEvents[d] || []).slice().sort((a, b) => a.time.localeCompare(b.time));
+  for (let h = 0; h < 24; h++) {
+    const li = document.createElement("li");
+    li.className = "hour";
+    li.dataset.hour = h;
+    li.innerHTML = `<div class="hour-label">${formatTime(h, 0).replace(":00", "")}</div><div class="hour-body"></div>`;
+    const body = li.querySelector(".hour-body");
+    mine.forEach((ev) => {
+      if (+ev.time.slice(0, 2) !== h) return;
+      const item = document.createElement("div");
+      item.className = "user-event";
+      const [eh, em] = ev.time.split(":").map(Number);
+      item.innerHTML = `<span></span><button aria-label="Delete event">×</button>`;
+      item.firstChild.textContent = `${formatTime(eh, em)} · ${ev.title}`;
+      item.lastChild.onclick = () => {
+        userEvents[d] = userEvents[d].filter((x) => x !== ev);
+        if (!userEvents[d].length) delete userEvents[d];
+        saveUserEvents();
+        renderDay();
+      };
+      body.appendChild(item);
+    });
+    list.appendChild(li);
+  }
+  updateNowLine(true);
+}
+
+function updateNowLine(scroll) {
+  const list = document.getElementById("hours");
+  list.querySelectorAll(".now-line").forEach((n) => n.remove());
+  list.querySelectorAll(".hour.current").forEach((n) => n.classList.remove("current"));
+  if (state.view !== "day" || state.date !== todayNY()) return;
+  const p = nyParts(clock.now());
+  const row = list.querySelector(`[data-hour="${p.hour}"]`);
+  if (!row) return;
+  row.classList.add("current");
+  const line = document.createElement("div");
+  line.className = "now-line";
+  line.style.top = `${((p.minute * 60 + p.second) / 3600) * 100}%`;
+  row.appendChild(line);
+  if (scroll) row.scrollIntoView({ block: "center" });
+}
+
+function renderMonth() {
+  const first = state.date.slice(0, 8) + "01";
+  const [y, m] = first.split("-").map(Number);
+  document.getElementById("viewTitle").textContent = `${MONTHS[m - 1]} ${y}`;
+
+  const grid = document.getElementById("monthGrid");
+  grid.innerHTML = "";
+  for (const name of DOW) {
+    const h = document.createElement("div");
+    h.className = "dow";
+    h.textContent = name;
+    grid.appendChild(h);
+  }
+
+  const today = todayNY();
+  let d = addDays(first, -dowOf(first));
+  const lastCell = addDays(addMonths(first, 1), -1);
+  const end = addDays(lastCell, 6 - dowOf(lastCell));
+  for (; d <= end; d = addDays(d, 1)) {
+    const cell = document.createElement("div");
+    const w = dowOf(d);
+    cell.className = "cell";
+    if (w === 0 || w === 6) cell.classList.add("weekend");
+    if (d.slice(0, 7) !== first.slice(0, 7)) cell.classList.add("outside");
+    if (isNoSchool(d)) cell.classList.add("no-school");
+    if (d === today) cell.classList.add("today");
+
+    const num = document.createElement("span");
+    num.className = "cell-num";
+    num.textContent = Number(d.slice(8));
+    cell.appendChild(num);
+
+    for (const ev of schoolEvents(d)) {
+      const chip = document.createElement("span");
+      chip.className = `chip ${ev.type}`;
+      chip.textContent = ev.title;
+      chip.title = ev.title;
+      cell.appendChild(chip);
+    }
+    for (const ev of userEvents[d] || []) {
+      const chip = document.createElement("span");
+      chip.className = "chip user";
+      chip.textContent = ev.title;
+      cell.appendChild(chip);
+    }
+
+    const date = d;
+    cell.onclick = () => { state.date = date; setView("day"); };
+    grid.appendChild(cell);
+  }
+}
+
+function renderDaysOff() {
+  document.getElementById("viewTitle").textContent = "Days with no school · 2026-27";
+  const today = todayNY();
+  const total = daysOff.reduce((n, ev) => n + weekdaysIn(ev), 0);
+  const left = daysOff.reduce((n, ev) => {
+    let c = 0;
+    for (let d = ev.start; d <= (ev.end || ev.start); d = addDays(d, 1)) {
+      if (d >= today && dowOf(d) !== 0 && dowOf(d) !== 6) c++;
+    }
+    return n + c;
+  }, 0);
+  document.getElementById("offSummary").textContent =
+    `${daysOff.length} holidays & breaks · ${total} weekdays off in total · ${left} still to come. ` +
+    `School runs ${shortDate(SCHOOL_YEAR.firstDay)} – ${shortDate(SCHOOL_YEAR.lastDay)}.`;
+
+  const list = document.getElementById("offList");
+  list.innerHTML = "";
+  const next = daysOff.find((ev) => (ev.end || ev.start) >= today);
+  for (const ev of daysOff) {
+    const li = document.createElement("li");
+    li.className = "off-item";
+    if ((ev.end || ev.start) < today) li.classList.add("past");
+    if (ev === next) li.classList.add("next");
+    const when = ev.end ? `${shortDate(ev.start)} – ${shortDate(ev.end)}` : shortDate(ev.start);
+    const n = weekdaysIn(ev);
+    li.innerHTML = `<strong></strong><span class="when"></span><span class="count"></span>`;
+    li.children[0].textContent = ev.title;
+    li.children[1].textContent = when;
+    li.children[2].textContent = `${n} school day${n === 1 ? "" : "s"} off`;
+    li.onclick = () => { state.date = ev.start; setView("month"); };
+    list.appendChild(li);
+  }
+  document.getElementById("offNote").textContent = "Note: " + SCHOOL_YEAR.note;
+}
+
+function renderNextOff() {
+  const today = todayNY();
+  const box = document.getElementById("nextOff");
+  if (isNoSchool(today) && dowOf(today) !== 0 && dowOf(today) !== 6) {
+    const ev = schoolEvents(today).find((e) => e.type === "off");
+    box.textContent = `No school today – ${ev.title} 🎉`;
+    return;
+  }
+  const next = daysOff.find((ev) => ev.start > today);
+  if (!next) { box.textContent = ""; return; }
+  const days = Math.round((toUTC(next.start) - toUTC(today)) / DAY_MS);
+  box.textContent = `Next day off: ${next.title}, ${shortDate(next.start)} (in ${days} day${days === 1 ? "" : "s"})`;
+}
+
+function step(dir) {
+  state.date = state.view === "month" ? addMonths(state.date, dir) : addDays(state.date, dir);
+  render();
+}
+
+/* ---------------------------------------------------------------------------
+ * Wire up
+ * ------------------------------------------------------------------------- */
+document.querySelectorAll(".tab").forEach((tab) => { tab.onclick = () => setView(tab.dataset.view); });
+document.getElementById("prevBtn").onclick = () => step(-1);
+document.getElementById("nextBtn").onclick = () => step(1);
+document.getElementById("todayBtn").onclick = () => { state.date = todayNY(); render(); };
+document.addEventListener("keydown", (e) => {
+  if (e.target.closest("input")) return;
+  if (e.key === "ArrowLeft") step(-1);
+  if (e.key === "ArrowRight") step(1);
+  if (e.key === "t") { state.date = todayNY(); render(); }
+});
+
+document.getElementById("eventForm").onsubmit = (e) => {
+  e.preventDefault();
+  const time = document.getElementById("eventTime").value;
+  const title = document.getElementById("eventTitle").value.trim();
+  if (!time || !title) return;
+  (userEvents[state.date] ||= []).push({ time, title });
+  saveUserEvents();
+  document.getElementById("eventTitle").value = "";
+  renderDay();
+};
+
+try {
+  const saved = localStorage.getItem("calendar.view");
+  if (saved === "day" || saved === "month" || saved === "off") state.view = saved;
+} catch { /* ignore */ }
+
+let lastDay = null;
+function tick() {
+  renderClock();
+  const today = todayNY();
+  if (lastDay && today !== lastDay) render(); // midnight in New York
+  lastDay = today;
+  updateNowLine(false);
+}
+
+render();
+tick();
+setInterval(tick, 1000);

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>School Year Calendar</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="clock">
+      <div class="clock-time" id="clockTime">--:--:--</div>
+      <div class="clock-date" id="clockDate">&nbsp;</div>
+      <div class="clock-sync" id="clockSync">Connecting to time.is…</div>
+    </div>
+    <div class="timeis">
+      <a href="https://time.is/New_York" id="time_is_link" rel="nofollow" target="_blank">New York time from time.is:</a>
+      <span id="New_York_z161"></span>
+    </div>
+    <div class="next-off" id="nextOff"></div>
+  </header>
+
+  <nav class="toolbar">
+    <div class="tabs" role="tablist">
+      <button role="tab" data-view="day" class="tab">Day</button>
+      <button role="tab" data-view="month" class="tab">Month</button>
+      <button role="tab" data-view="off" class="tab">Days Off</button>
+    </div>
+    <div class="nav">
+      <button id="prevBtn" aria-label="Previous">&#8249;</button>
+      <button id="todayBtn">Today</button>
+      <button id="nextBtn" aria-label="Next">&#8250;</button>
+    </div>
+    <h1 class="view-title" id="viewTitle"></h1>
+  </nav>
+
+  <main>
+    <section id="dayView" class="view" hidden>
+      <div id="dayBanner"></div>
+      <form id="eventForm" class="event-form">
+        <input type="time" id="eventTime" required aria-label="Event time">
+        <input type="text" id="eventTitle" placeholder="Add an event for this day" required aria-label="Event title">
+        <button type="submit">Add</button>
+      </form>
+      <ol class="hours" id="hours"></ol>
+    </section>
+
+    <section id="monthView" class="view" hidden>
+      <div class="legend">
+        <span><i class="sw off"></i>No school</span>
+        <span><i class="sw early"></i>Early release</span>
+        <span><i class="sw open"></i>Observance – school open</span>
+        <span><i class="sw info"></i>Key date</span>
+      </div>
+      <div class="month-grid" id="monthGrid"></div>
+    </section>
+
+    <section id="offView" class="view" hidden>
+      <p class="off-summary" id="offSummary"></p>
+      <ul class="off-list" id="offList"></ul>
+      <p class="fineprint" id="offNote"></p>
+    </section>
+  </main>
+
+  <footer>
+    Times shown in New York (America/New_York). Clock synced with
+    <a href="https://time.is/New_York" target="_blank" rel="nofollow">time.is</a>.
+    School dates from the 2026-27 Greenwich Public Schools District Calendar (Rev. 9/25/2025).
+  </footer>
+
+  <script src="school-calendar.js"></script>
+  <script src="app.js"></script>
+  <!-- time.is widget: provides the official New York time used to correct the clock -->
+  <script src="https://widget.time.is/t.js"></script>
+  <script>
+    if (window.time_is_widget) {
+      time_is_widget.init({ New_York_z161: { template: "TIME", time_format: "hours:minutes:secondsAMPM" } });
+    }
+  </script>
+</body>
+</html>
