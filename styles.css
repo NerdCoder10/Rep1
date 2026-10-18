@@ -424,3 +424,26 @@ main { padding: 0 16px 24px; max-width: 1100px; margin: 0 auto; }
 .fineprint { font-size: 0.8rem; color: var(--muted); }
 
 footer { text-align: center; font-size: 0.75rem; color: var(--muted); padding: 16px; }
+
+/* Install */
+.install-btn { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.install-btn[hidden] { display: none; }
+.install-help {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 16px 20px;
+}
+.install-help::backdrop { background: rgba(0, 0, 0, 0.4); }
+.install-help h2 { margin: 0 0 8px; font-size: 1.15rem; }
+.install-help ol { padding-left: 20px; margin: 0 0 12px; }
+.install-help li { margin-bottom: 6px; }
+.install-help form { text-align: right; }
+
+/* Installed app: respect the phone's notch / status bar. */
+@media (display-mode: standalone) {
+  .topbar { padding-top: max(16px, env(safe-area-inset-top)); }
+  footer { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+}

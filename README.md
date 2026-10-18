@@ -29,4 +29,6 @@ Online with GitHub Pages: in the repo, go to **Settings → Pages**, set **Sourc
 
 The site updates itself: it checks `version.json` every 5 minutes and whenever you switch back to the tab, and reloads with fresh files when the version changes. When you change the site, bump the version in `version.json` and everywhere it appears in `index.html` (the `app-version` meta tag and each `?v=` on the script and stylesheet links).
 
+Install it as an app on your phone: open the site, tap **📲 Install app** (next to the Day/Month tabs), and follow the steps. On iPhone that's Safari → Share → Add to Home Screen; on Android it's Chrome's Install prompt. The installed app opens full-screen from its own icon, works offline with the last saved data, and still updates itself.
+
 On your computer: download the repo (**Code → Download ZIP**), unzip it, and double-click `index.html`.

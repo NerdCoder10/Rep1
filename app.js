@@ -650,6 +650,52 @@ async function refreshWeather() {
 }
 
 /* ---------------------------------------------------------------------------
+ * Install as an app
+ * ------------------------------------------------------------------------- */
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(() => { /* still works as a website */ });
+}
+
+const isInstalled = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const installBtn = document.getElementById("installBtn");
+let installPrompt = null;
+
+function showInstallHelp() {
+  const steps = document.getElementById("installSteps");
+  steps.innerHTML = isIOS
+    ? `<ol><li>Open this page in <b>Safari</b>.</li>
+         <li>Tap the <b>Share</b> button (square with an arrow ↑).</li>
+         <li>Scroll down and tap <b>Add to Home Screen</b>, then <b>Add</b>.</li></ol>`
+    : `<ol><li>Open this page in <b>Chrome</b>.</li>
+         <li>Tap the <b>⋮</b> menu (top right).</li>
+         <li>Tap <b>Add to Home screen</b> or <b>Install app</b>, then <b>Install</b>.</li></ol>`;
+  document.getElementById("installHelp").showModal();
+}
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  // Android / desktop Chrome: show our own Install button.
+  e.preventDefault();
+  installPrompt = e;
+  installBtn.hidden = false;
+});
+window.addEventListener("appinstalled", () => { installBtn.hidden = true; installPrompt = null; });
+
+installBtn.onclick = async () => {
+  if (installPrompt) {
+    installPrompt.prompt();
+    await installPrompt.userChoice;
+    installPrompt = null;
+    installBtn.hidden = true;
+  } else {
+    showInstallHelp();
+  }
+};
+// iPhone/iPad have no install prompt, so show the button with instructions.
+if (!isInstalled() && isIOS) installBtn.hidden = false;
+
+/* ---------------------------------------------------------------------------
  * Auto-update: browsers keep old copies of the site's files. Check
  * version.json (never cached) and reload with fresh files when it changes.
  * ------------------------------------------------------------------------- */

@@ -2,10 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="app-version" content="2026.10.13.6">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="app-version" content="2026.10.18.1">
   <title>School Year Calendar</title>
-  <link rel="stylesheet" href="styles.css?v=2026.10.13.6">
+  <meta name="theme-color" content="#2f6fde">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Calendar">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="stylesheet" href="styles.css?v=2026.10.18.1">
 </head>
 <body>
   <header class="topbar">
@@ -32,6 +40,7 @@
       <button role="tab" data-view="month" class="tab">Month</button>
       <button role="tab" data-view="off" class="tab">Days Off</button>
     </div>
+    <button id="installBtn" class="install-btn" hidden>📲 Install app</button>
     <div class="nav">
       <button id="prevBtn" aria-label="Previous">&#8249;</button>
       <button id="todayBtn">Today</button>
@@ -75,6 +84,12 @@
     </section>
   </main>
 
+  <dialog id="installHelp" class="install-help">
+    <h2>Install on your phone</h2>
+    <div id="installSteps"></div>
+    <form method="dialog"><button>Got it</button></form>
+  </dialog>
+
   <footer>
     Times shown in New York (America/New_York). Clock synced with
     <a href="https://time.is/New_York" target="_blank" rel="nofollow">time.is</a>.
@@ -83,11 +98,11 @@
     <br><span id="appVersion"></span>
   </footer>
 
-  <script src="school-calendar.js?v=2026.10.13.6"></script>
-  <script src="schedule.js?v=2026.10.13.6"></script>
-  <script src="planner.js?v=2026.10.13.6"></script>
-  <script src="closure.js?v=2026.10.13.6"></script>
-  <script src="app.js?v=2026.10.13.6"></script>
+  <script src="school-calendar.js?v=2026.10.18.1"></script>
+  <script src="schedule.js?v=2026.10.18.1"></script>
+  <script src="planner.js?v=2026.10.18.1"></script>
+  <script src="closure.js?v=2026.10.18.1"></script>
+  <script src="app.js?v=2026.10.18.1"></script>
   <!-- time.is widget: provides the official New York time used to correct the clock -->
   <script src="https://widget.time.is/t.js"></script>
   <script>
