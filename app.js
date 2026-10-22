@@ -277,6 +277,7 @@ function setView(view) {
 }
 
 function render() {
+  if (WALLPAPER) { renderWallpaper(); return; }
   if (!state.date) state.date = todayNY();
   for (const tab of document.querySelectorAll(".tab")) {
     tab.setAttribute("aria-selected", String(tab.dataset.view === state.view));
@@ -604,6 +605,7 @@ try {
 let lastDay = null;
 function tick() {
   renderClock();
+  if (WALLPAPER) { renderWallpaper(); return; }
   const today = todayNY();
   if (lastDay && today !== lastDay) render(); // midnight in New York
   lastDay = today;
@@ -712,7 +714,9 @@ async function checkForUpdate() {
     if (version && version !== APP_VERSION && version !== tried) {
       // A new URL makes the browser fetch a fresh index.html, which points
       // at the new versions of every script and stylesheet.
-      location.replace(`${location.pathname}?v=${encodeURIComponent(version)}`);
+      const params = new URLSearchParams(location.search); // keep ?wallpaper=…
+      params.set("v", version);
+      location.replace(`${location.pathname}?${params}`);
     }
   } catch { /* offline – try again later */ }
 }

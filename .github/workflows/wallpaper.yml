@@ -1,0 +1,48 @@
+name: Phone wallpaper
+
+# Every 30 minutes, screenshot the calendar's phone wallpaper layout and
+# publish it to the `wallpaper` branch, where an iPhone Shortcut downloads it:
+# https://raw.githubusercontent.com/NerdCoder10/Rep1/wallpaper/wallpaper-phone.png
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+  push:
+    branches: [claude/calendar-pdf-holiday-scanner-nk78gr]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wallpaper
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.47.2
+          npx playwright install --with-deps chromium
+      - name: Render wallpaper
+        run: |
+          python3 -m http.server 8080 >/dev/null 2>&1 &
+          sleep 1
+          mkdir -p out
+          node tools/render-wallpaper.js http://localhost:8080 out
+      - name: Publish to the wallpaper branch
+        run: |
+          cd out
+          git init -q
+          git checkout -q -b wallpaper
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add wallpaper-phone.png
+          git commit -q -m "Wallpaper $(TZ=America/New_York date '+%Y-%m-%d %H:%M')"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" wallpaper

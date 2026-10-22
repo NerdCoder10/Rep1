@@ -447,3 +447,119 @@ footer { text-align: center; font-size: 0.75rem; color: var(--muted); padding: 1
   .topbar { padding-top: max(16px, env(safe-area-inset-top)); }
   footer { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
 }
+
+/* ---------------------------------------------------------------------------
+ * Wallpaper mode (?wallpaper=mac or ?wallpaper=phone). Always dark so the
+ * phone's white lock-screen clock and desktop icons stay readable.
+ * ------------------------------------------------------------------------- */
+.wp { display: none; }
+.wallpaper body {
+  background: radial-gradient(120% 80% at 20% 0%, #1d2b52 0%, #0f1424 55%, #0a0d17 100%) fixed;
+  color: #eef1f7;
+  min-height: 100vh;
+  overflow: hidden;
+}
+.wallpaper .topbar, .wallpaper .toolbar, .wallpaper main, .wallpaper footer,
+.wallpaper .install-help { display: none; }
+.wallpaper .wp {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  --wp-card: rgba(255, 255, 255, 0.08);
+  --wp-line: rgba(255, 255, 255, 0.12);
+  --wp-dim: rgba(238, 241, 247, 0.62);
+}
+
+.wp-clock-space { height: 34vh; }          /* phone lock-screen clock goes here */
+.wp-time-big { font-size: 4.5rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.wp-date { color: var(--wp-dim); font-size: 1.1rem; margin-top: 6px; }
+
+.wp-day {
+  background: var(--wp-card);
+  border: 1px solid var(--wp-line);
+  border-radius: 20px;
+  padding: 14px 16px;
+  backdrop-filter: blur(12px);
+}
+.wp-day-label { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--wp-dim); font-weight: 700; }
+.wp-day-line { font-size: 1.15rem; font-weight: 700; margin: 2px 0 6px; }
+.wp-note { display: inline-block; font-size: 0.75rem; border-radius: 6px; padding: 1px 8px; margin: 0 4px 6px 0; background: var(--wp-line); }
+.wp-note.early { background: #a35200; }
+.wp-empty { color: var(--wp-dim); margin: 6px 0 2px; }
+
+.wp-agenda { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.wp-item {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 10px;
+  align-items: baseline;
+  padding: 5px 8px;
+  border-radius: 10px;
+  border-left: 4px solid var(--blk, rgba(255, 255, 255, 0.25));
+  font-size: 0.85rem;
+}
+.wp-item .wp-time { color: var(--wp-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wp-item .wp-what { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wp-item small { color: var(--wp-dim); margin-left: 6px; font-size: 0.75rem; }
+.wp-item.now { background: rgba(255, 255, 255, 0.16); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35); }
+.wp-item.past { opacity: 0.4; }
+.wp-item.free b { font-weight: 500; color: var(--wp-dim); }
+.wp-item.lunch, .wp-item.kickoff { --blk: #ffb347; }
+.wp-item.study { --blk: #b9a5ff; }
+.wp-item.meeting { --blk: #6c9cf0; }
+.wp-item.deadline { --blk: #ff6b6f; background: rgba(229, 72, 77, 0.22); }
+.wp-item.deadline .wp-time { color: #ff8a8e; font-weight: 700; }
+
+.wp-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.wp-card {
+  background: var(--wp-card);
+  border: 1px solid var(--wp-line);
+  border-radius: 18px;
+  padding: 12px 14px;
+  min-width: 0;
+}
+.wp-label { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--wp-dim); }
+.wp-big { font-size: 1.8rem; font-weight: 800; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.wp-sub { font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.wp-sub.dim { color: var(--wp-dim); -webkit-line-clamp: 1; }
+.wp-card.deadline { border-color: rgba(255, 107, 111, 0.6); }
+.wp-card.deadline .wp-big { color: #ff8a8e; }
+.wp-card.off .wp-big { color: #7ee2a8; }
+.wp-card.chance.low .wp-big { color: #9dbcf5; }
+.wp-card.chance.mid .wp-big { color: #ffc46b; }
+.wp-card.chance.high { border-color: rgba(255, 107, 111, 0.6); }
+.wp-card.chance.high .wp-big { color: #ff8a8e; }
+.wp-updated { font-size: 0.7rem; color: var(--wp-dim); text-align: center; }
+
+/* Phone: compact, one column, clear of the lock-screen clock (top) and the
+   flashlight / camera buttons (bottom). */
+.wallpaper-phone .wp { padding: 0 14px 96px; gap: 10px; }
+.wallpaper-phone .wp-clock-space { height: 30vh; }
+.wallpaper-phone .wp-day { padding: 10px 12px; border-radius: 18px; }
+.wallpaper-phone .wp-day-line { font-size: 1rem; margin-bottom: 4px; }
+.wallpaper-phone .wp-agenda { gap: 2px; }
+.wallpaper-phone .wp-item { grid-template-columns: 62px 1fr; gap: 8px; padding: 3px 8px; font-size: 0.8rem; }
+.wallpaper-phone .wp-item small { display: none; }
+.wallpaper-phone .wp-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.wallpaper-phone .wp-card { padding: 9px 10px; border-radius: 14px; }
+.wallpaper-phone .wp-label { font-size: 0.6rem; }
+.wallpaper-phone .wp-big { font-size: 1.15rem; }
+.wallpaper-phone .wp-sub { font-size: 0.7rem; }
+.wallpaper-phone .wp-updated { display: none; }
+
+/* Mac desktop: clock and countdowns on the left, the day on the right,
+   leaving the right edge clear for desktop icons. */
+.wallpaper-mac .wp {
+  grid-template-columns: minmax(280px, 380px) minmax(360px, 520px);
+  grid-template-areas: "clock day" "cards day" "updated day";
+  align-content: center;
+  justify-content: start;
+  min-height: 100vh;
+  padding: 48px 64px;
+  gap: 24px 40px;
+}
+.wallpaper-mac .wp-clock { grid-area: clock; }
+.wallpaper-mac .wp-day { grid-area: day; align-self: center; }
+.wallpaper-mac .wp-cards { grid-area: cards; grid-template-columns: 1fr 1fr; }
+.wallpaper-mac .wp-updated { grid-area: updated; text-align: left; }
+.wallpaper-mac .wp-item { font-size: 0.95rem; padding: 7px 10px; }

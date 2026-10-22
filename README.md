@@ -32,3 +32,18 @@ The site updates itself: it checks `version.json` every 5 minutes and whenever y
 Install it as an app on your phone: open the site, tap **📲 Install app** (next to the Day/Month tabs), and follow the steps. On iPhone that's Safari → Share → Add to Home Screen; on Android it's Chrome's Install prompt. The installed app opens full-screen from its own icon, works offline with the last saved data, and still updates itself.
 
 On your computer: download the repo (**Code → Download ZIP**), unzip it, and double-click `index.html`.
+
+## Calendar as your screen
+
+**Mac desktop (live):** install the free [Plash](https://apps.apple.com/app/plash/id1494023538) app from the Mac App Store, choose **Add Website**, and paste
+`https://nerdcoder10.github.io/Rep1/?wallpaper=mac`. It shows the clock, today's schedule, the cancellation chance and your countdowns, and updates live.
+
+**iPhone lock screen (refreshed image):** a GitHub Action (`.github/workflows/wallpaper.yml`) renders `?wallpaper=phone` every 30 minutes to
+`https://raw.githubusercontent.com/NerdCoder10/Rep1/wallpaper/wallpaper-phone.png`. Set it with a Shortcuts automation:
+
+1. Shortcuts app → **Automation** → **+** → **Time of Day** → pick a time (e.g. 6:30 AM), **Daily**, **Run Immediately** → Next.
+2. Add **Get Contents of URL** with the image link above.
+3. Add **Set Wallpaper Photo** → choose **Lock Screen**, and turn off **Show Preview**.
+4. Repeat for more times of day (e.g. 7:50 AM, 11:55 AM, 2:30 PM, 6:00 PM, 9:00 PM).
+
+You can also preview the phone layout in a browser at `https://nerdcoder10.github.io/Rep1/?wallpaper=phone`.
