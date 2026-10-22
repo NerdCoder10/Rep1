@@ -39,20 +39,28 @@ function nyParts(ms) {
 
 function syncFromTimeIs() {
   const el = document.getElementById("New_York_z161");
-  const m = el && el.textContent.match(/(\d{1,2}):(\d{2}):(\d{2})\s*([AP]M)?/i);
+  const m = el && el.textContent.match(/(\d{1,2}):(\d{2}):(\d{2})\s*(?:([ap])\.?\s?m\.?)?/i);
   if (!m) return;
-  let h = +m[1];
-  if (m[4]) {
-    const pm = m[4].toUpperCase() === "PM";
-    if (h === 12) h = pm ? 12 : 0;
-    else if (pm) h += 12;
-  }
-  const timeIsSec = h * 3600 + +m[2] * 60 + +m[3];
   const local = nyParts(Date.now());
   const localSec = local.hour * 3600 + local.minute * 60 + local.second;
-  let diff = timeIsSec - localSec;
-  if (diff > 43200) diff -= 86400;
-  if (diff < -43200) diff += 86400;
+  const rest = +m[2] * 60 + +m[3];
+  const h12 = +m[1] % 12;
+
+  // Which hours could the widget mean? With AM/PM it's exact; without it
+  // (the widget can show 12-hour time with no suffix), try both and take the
+  // one closest to the device clock.
+  const hours = m[4] ? [h12 + (m[4].toLowerCase() === "p" ? 12 : 0)]
+    : +m[1] > 12 ? [+m[1]] : [h12, h12 + 12];
+  let diff = null;
+  for (const h of hours) {
+    let d = h * 3600 + rest - localSec;
+    if (d > 43200) d -= 86400;
+    if (d < -43200) d += 86400;
+    if (diff === null || Math.abs(d) < Math.abs(diff)) diff = d;
+  }
+  // A device clock is never hours off; a bigger gap means a misread, so ignore it.
+  if (Math.abs(diff) > 2 * 3600) return;
+
   // Ignore sub-second jitter between the widget tick and ours.
   if (Math.abs(diff * 1000 - clock.offsetMs) >= 1000 || !clock.synced) clock.offsetMs = diff * 1000;
   clock.synced = true;
