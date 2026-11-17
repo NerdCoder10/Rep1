@@ -38,12 +38,16 @@ On your computer: download the repo (**Code → Download ZIP**), unzip it, and d
 **Mac desktop (live):** install the free [Plash](https://apps.apple.com/app/plash/id1494023538) app from the Mac App Store, choose **Add Website**, and paste
 `https://nerdcoder10.github.io/Rep1/?wallpaper=mac`. It shows the clock, today's schedule, the cancellation chance and your countdowns, and updates live.
 
-**iPhone lock screen (refreshed image):** a GitHub Action (`.github/workflows/wallpaper.yml`) renders `?wallpaper=phone` every 30 minutes to
-`https://raw.githubusercontent.com/NerdCoder10/Rep1/wallpaper/wallpaper-phone.png`. Set it with a Shortcuts automation:
+**iPhone lock screen (hourly image):** a GitHub Action (`.github/workflows/wallpaper.yml`) renders `?wallpaper=phone` for every hour of the next 3 days, as
+`https://raw.githubusercontent.com/NerdCoder10/Rep1/wallpaper/YYYY-MM-DD-HH.jpg` (New York time). GitHub often runs scheduled jobs hours late, so rendering ahead means there is always an image for the current hour. Set it with a Shortcuts automation:
 
-1. Shortcuts app → **Automation** → **+** → **Time of Day** → pick a time (e.g. 6:30 AM), **Daily**, **Run Immediately** → Next.
-2. Add **Get Contents of URL** with the image link above.
-3. Add **Set Wallpaper Photo** → choose **Lock Screen**, and turn off **Show Preview**.
-4. Repeat for more times of day (e.g. 7:50 AM, 11:55 AM, 2:30 PM, 6:00 PM, 9:00 PM).
+1. Shortcuts app → **Automation** → **+** → **Time of Day** → pick a time on the hour (e.g. 7:00 AM), **Daily**, **Run Immediately** → Next.
+2. Add **Format Date**: Date = **Current Date**, Date Format = **Custom**, Format String = `yyyy-MM-dd-HH`.
+3. Add **Text**: `https://raw.githubusercontent.com/NerdCoder10/Rep1/wallpaper/` then the **Formatted Date** variable, then `.jpg`.
+4. Add **Get Contents of URL** with that Text.
+5. Add **Set Wallpaper Photo** → **Lock Screen**, and turn off **Show Preview**.
+6. Repeat for more times on the hour (e.g. 6, 8, 10 AM, 12, 2, 4, 6, 9 PM).
+
+The image for the current hour is also always at `.../wallpaper/wallpaper-phone.jpg` (and `.png`).
 
 You can also preview the phone layout in a browser at `https://nerdcoder10.github.io/Rep1/?wallpaper=phone`.

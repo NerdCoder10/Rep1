@@ -20,6 +20,8 @@ function countdownText(ms) {
   const days = Math.floor(ms / DAY_MS);
   const h = Math.floor(ms / 3600000) % 24;
   const m = Math.floor(ms / 60000) % 60;
+  // The phone wallpaper is an hourly image, so minutes would be stale.
+  if (WALLPAPER === "phone") return days > 0 ? `${days}d ${h}h` : `${h}h`;
   return days > 0 ? `${days}d ${h}h ${pad(m)}m` : `${h}h ${pad(m)}m`;
 }
 
